@@ -1,0 +1,9 @@
+module bin_to_grey(input [3:0] binary, output reg [3:0] grey);
+always@(*)
+begin
+grey[3]=binary[3];
+grey[2]=binary[3]^binary[2];
+grey[1]=binary[2]^binary[1];
+grey[0]=binary[1]^binary[0];
+end
+endmodule
