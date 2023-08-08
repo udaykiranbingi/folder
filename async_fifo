@@ -1,0 +1,91 @@
+module fifo_synchronizer(input wr_clk,wr_rst,rd_clk,rd_rst,wr_en,rd_en, input [2:0] data_in, output full,empty, output reg [2:0] data_out);
+//reg [3:0] b_wr_ptr,b_rd_ptr;
+wire [3:0] g_wr_ptr,g_rd_ptr,e_b_wr_ptr,f_b_rd_ptr;
+reg [2:0] fifo [7:0];
+reg [3:0] wr_ptr,qgwptr1,qgwptr2;
+reg [3:0] rd_ptr,qgrptr1,qgrptr2;
+
+ 
+always@(posedge wr_clk or posedge wr_rst)
+begin
+if(wr_rst)
+begin
+qgrptr1<=0;
+qgrptr2<=0;
+end
+else
+begin
+qgrptr1<=g_rd_ptr;
+qgrptr2<=qgrptr1;
+end
+end
+
+
+always@(posedge wr_clk or posedge wr_rst)
+begin
+if(wr_rst)
+wr_ptr<=0;
+else
+if(wr_en && !full)
+begin
+fifo[wr_ptr[2:0]]<=data_in;
+wr_ptr<=wr_ptr+1;
+end
+end
+
+bin_to_grey bg1(.binary(wr_ptr),.grey(g_wr_ptr));
+grey_to_bin gb1(.grey(qgwptr2),.binary(e_b_wr_ptr));
+
+assign full = ({~wr_ptr[3] , wr_ptr[2:0]} == f_b_rd_ptr) ? 1 : 0;
+
+//always@(posedge wr_clk)
+//begin
+//if(wr_ptr==1)
+//d_fifo<=d_fifo;
+//else
+//d_fifo<=data_in;
+//end
+
+
+always@(posedge rd_clk or posedge rd_rst)
+begin
+if(rd_rst)
+begin
+qgwptr1<=0;
+qgwptr2<=0;
+end
+else
+begin
+qgwptr1<=g_wr_ptr;
+qgwptr2<=qgwptr1;
+end
+end
+
+always@(posedge rd_clk or posedge rd_rst)
+begin
+if(rd_rst)
+rd_ptr<=0;
+else
+if(rd_en && !empty)
+begin
+data_out<=fifo[rd_ptr[2:0]];
+rd_ptr<=rd_ptr+1;
+end
+end
+
+bin_to_grey bg3(.binary(rd_ptr),.grey(g_rd_ptr));
+grey_to_bin gb4(.grey(qgrptr2),.binary(f_b_rd_ptr));
+
+
+assign empty = (rd_ptr == e_b_wr_ptr) ? 1 : 0;
+
+//always@(posedge rd_clk)
+//begin
+//if(rd_ptr==1)
+//data_out<=data_out;
+//else
+//data_out<=d_fifo;
+//end
+
+
+endmodule
